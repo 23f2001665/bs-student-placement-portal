@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+
+# Instance Directory
+instance/
+
+# SQLite
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+
+# Scratch / experiments
+test-scratch/
+scratch/
+
+# OS noise
+.DS_Store
+
+# Logs
+*.log
+
+# Environment Files
+.env

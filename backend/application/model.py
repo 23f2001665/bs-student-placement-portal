@@ -1,7 +1,7 @@
 
 from sqlalchemy import UniqueConstraint, CheckConstraint
 from sqlalchemy import event
-from extension import db
+from .extension import db
 from datetime import datetime, timezone
 from enum import Enum
 
@@ -136,13 +136,13 @@ class User(db.Model):
     email=db.Column(db.String(255), nullable=False, unique=True)
     password=db.Column(db.String(255), nullable=False)          # argon hashed
     is_active=db.Column(db.Boolean, nullable=False, default=False)
-    created_at=db.Column(db.DateTime, nullable=True, default=lambda:datetime.now(timezone.utc))
+    created_at=db.Column(db.DateTime, nullable=False, default=lambda:datetime.now(timezone.utc))
     last_login=db.Column(db.DateTime, nullable=True)
     user_type=db.Column(db.Enum(UserType), nullable=False)
 
     # common profile fields
     name=db.Column(db.String(63), nullable=False)
-    profile_photo=db.Column(db.String(255), nullable=False, default="user.png")  # address
+    profile_photo=db.Column(db.String(255), nullable=True, default="user.png")  # address
 
     # table constraints
     __table_args__ = (
