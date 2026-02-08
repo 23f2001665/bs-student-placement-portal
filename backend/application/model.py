@@ -127,7 +127,9 @@ db.Table(
 
 class User(db.Model):
     """
-    Docstring for User
+    Base user class for all user types. This is an abstract class and will not be mapped to a table. It contains common fields and relationships for all user types. Both Student and Company will inherit from this class. I will write somthing later.
+
+    Admin will be a special user with user_type='admin' and one and only directly mapped to User table. Admin will not have any additional fields or relationships.
     """
     __tablename__ = "user"
 
@@ -171,13 +173,14 @@ class Student(User):
     id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
     dob = db.Column(db.Date, nullable=False)
     gender = db.Column(db.Enum(Gender), nullable=False)
-    
+
     # college specific fields
     roll = db.Column(db.String(10), unique=True, nullable=False, index=True)
     admission_year = db.Column(db.Integer, nullable=False)
     current_level = db.Column(db.Integer, nullable=False)   # year of study
     prog_id = db.Column(db.Integer, db.ForeignKey("programme.id"), nullable=False)
     branch_id = db.Column(db.Integer, db.ForeignKey("branch.id"), nullable=False)
+    cgpa = db.Column(db.Float, nullable=False, default=0.0)
 
     # computed properties
     @property
@@ -193,6 +196,7 @@ class Student(User):
     # table constraints
     __table_args__ = (
         CheckConstraint('current_level >= 1', name="student_current_level_positive"),
+        CheckConstraint('cgpa >= 0.0 AND cgpa <= 10.0', name="student_cgpa_valid"),
         # check that current_level <= programme.duration_years in application logic
         CheckConstraint('admission_year >= 2000', name="student_admission_year_valid"),
         db.Index("idx_student_programme", "prog_id"),
@@ -344,11 +348,19 @@ def prevent_roll_change(mapper, connection, target):
     if db.inspect(target).attrs.roll.history.has_changes():
         raise ValueError("Student roll number cannot be changed")
 
-# Branch-Programme naming convention
+# Branch Code Validation
 @event.listens_for(Branch, "before_insert")
 def validate_branch_code(mapper, connection, target):
-    if not target.code.startswith(target.programme.code):
+    result = connection.execute(
+        db.select(Programme.code).where(Programme.id == target.prog_id)
+    ).scalar_one_or_none()
+
+    if result is None:
+        raise ValueError("Invalid programme reference")
+
+    if not target.code.startswith(result):
         raise ValueError("Invalid branch code")
+
 
 # Immutable Branch Code
 @event.listens_for(Branch, "before_update")
