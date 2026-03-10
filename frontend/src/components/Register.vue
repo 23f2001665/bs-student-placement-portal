@@ -273,6 +273,8 @@
 <script>
 import FlatPickr from "vue-flatpickr-component";
 import "flatpickr/dist/flatpickr.css";
+import sleep from "../utils/sleep";
+
 
 export default {
   name: "Register",
@@ -499,6 +501,7 @@ export default {
 
         // success
         alert("Registration successful! Redirecting to login...");
+        await sleep(1); // Wait for a second before redirecting
         this.$router.push("/login");
       } catch (err) {
         this.serverError = "Network error. Please try again.";

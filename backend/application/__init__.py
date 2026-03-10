@@ -1,6 +1,6 @@
 from flask import Flask
 
-from .extension import db, migrate, ma, jwt, password_hasher
+from .extensions import *
 from .model import *
 
 from dotenv import load_dotenv
@@ -25,7 +25,18 @@ def create_admin(app):
         else:
             print("Admin user already exists.")
 
+
+def make_celery(app):
+
+    celery.conf.update(app.config)
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+
+    celery.Task = ContextTask
     
+
 
 def create_app(config_object=None):
     app = Flask(__name__)
@@ -34,16 +45,12 @@ def create_app(config_object=None):
     migrate.init_app(app, db)
     from flask_cors import CORS
 
-    CORS(
-        app,
-        resources={r"/auth/*": {"origins": "http://localhost:5173"}},
-        allow_headers=["Content-Type", "Authorization"],
-        expose_headers=["Authorization"],
-        supports_credentials=True,
-    )
+    cors.init_app(app)
 
     ma.init_app(app)
     jwt.init_app(app)
+    make_celery(app)
+    mail.init_app(app)
     
     from .public import public_bp
     from .auth import auth_bp
@@ -52,6 +59,7 @@ def create_app(config_object=None):
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
+
 
     create_admin(app)
     return app

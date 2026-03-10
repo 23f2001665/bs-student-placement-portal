@@ -4,7 +4,7 @@ from faker import Faker
 from flask import current_app as app
 
 from .model import *
-from .extension import db, password_hasher
+from .extensions import db, password_hasher
 from .model import Gender
 
 
@@ -65,20 +65,16 @@ def seed_programme_branches():
         db.session.rollback()
         app.logger.critical(f"Error seeding programmes: {e}")
     
-    branches = [
-        Branch(
-            prog_id=db.session.query(Programme).filter_by(code="BTECH").first().id,
-            code="CSE",
-            name="Computer Science and Engineering" 
-        )]
+    branch_codes = {'CSE': "Computer Science and Engineering", 'ECE': "Electronics and Communication Engineering", 'ME': "Mechanical Engineering", 'CE': "Civil Engineering", 'EE': "Electrical Engineering", 'IT': "Information Technology", 'AERO': "Aerospace Engineering", 'BIO': "Biotechnology Engineering", 'CHEM': "Chemical Engineering", 'CIVIL': "Civil Engineering"}
+    branches = []
     
     for prog in programmes:
-        for i in range(1, 6):
+        for branch_code, branch_name in branch_codes.items():
             branches.append(
                 Branch(
                     prog_id=prog.id,
-                    code=f"{prog.code}_BR{i}",
-                    name=f"{prog.name} Branch {i}"
+                    code=f"{prog.code}_{branch_code}",
+                    name=f"{prog.name} in {branch_name}"
                 )
             )
     try:
@@ -241,3 +237,306 @@ def seed_company(number_of_companies=100):
     except Exception as e:
         db.session.rollback()
         print(f"Error seeding company: {e}")    
+        
+        
+def reset_database():
+
+    print("🧹 Clearing database safely...")
+
+    db.session.query(Application).delete()
+
+    db.session.query(PlacementDrive).delete()
+
+    # Association table
+    db.session.execute(
+        db.text("DELETE FROM drive_eligibility_branches")
+    )
+
+    db.session.query(DriveEligibility).delete()
+
+    db.session.query(Student).delete()
+    db.session.query(Company).delete()
+
+    db.session.query(User).filter(User.user_type != UserType.admin).delete()
+
+    db.session.query(Branch).delete()
+    db.session.query(Programme).delete()
+
+    db.session.commit()
+
+    print("✅ Database cleared")
+    
+
+import random
+from datetime import datetime, timedelta, date, timezone
+
+from faker import Faker
+from werkzeug.security import generate_password_hash
+
+from .extensions import db
+from .model import (
+    Programme, Branch, DriveEligibility,
+    User, Student, Company,
+    PlacementDrive, Application,
+
+    UserType, Gender, WorkMode,
+    DriveApprovalStatus, DriveStatus,
+    ApplicationStatus
+)
+
+fake = Faker("en_IN")
+
+
+# =====================================================
+# CONFIG
+# =====================================================
+
+TOTAL_STUDENTS = 1000
+TOTAL_COMPANIES = 25
+TOTAL_DRIVES = 200
+TOTAL_APPLICATIONS = 5000
+
+
+PASSWORD = generate_password_hash("test@123")
+
+
+# =====================================================
+# MAIN SEEDER
+# =====================================================
+
+def seed_database_faker():
+
+    print("🌱 Seeding database with Faker...")
+
+    reset_database()        # removing everything except admin
+
+    # -----------------------------------------------
+    # PROGRAMMES AND BRANCHES
+    # -----------------------------------------------
+    seed_programme_branches()
+
+    # -----------------------------------------------
+    # DRIVE ELIGIBILITY
+    # -----------------------------------------------
+    eligibilities = []
+
+    for i in range(10):
+
+        min_cgpa = round(random.uniform(5.5, 8.0), 2)
+
+        elig = DriveEligibility(
+            description=f"CGPA >= {min_cgpa}",
+            min_cgpa=min_cgpa,
+            allowed_branches=random.sample(
+                branches,
+                random.randint(2, 5)
+            )
+        )
+
+        eligibilities.append(elig)
+
+    db.session.add_all(eligibilities)
+    db.session.flush()
+
+
+    # -----------------------------------------------
+    # ADMIN
+    # -----------------------------------------------
+    admin = User(
+        email="admin@test.com",
+        password=PASSWORD,
+        name="admin",
+        user_type=UserType.admin
+    )
+
+    db.session.add(admin)
+    db.session.flush()
+
+
+    # -----------------------------------------------
+    # STUDENTS
+    # -----------------------------------------------
+    students = []
+
+    for i in range(TOTAL_STUDENTS):
+
+        branch = random.choice(branches)
+        programme = branch.programme
+
+        admission_year = random.randint(2019, 2024)
+
+        current_level = random.randint(
+            1,
+            programme.duration_years
+        )
+
+        dob = fake.date_between(
+            start_date="-25y",
+            end_date="-18y"
+        )
+
+        student = Student(
+            email=f"student{i}@test.com",
+            password=PASSWORD,
+            name=fake.name(),
+
+            user_type=UserType.student,
+
+            dob=dob,
+            gender=random.choice(list(Gender)),
+
+            roll=f"ROLL{1000+i}",
+
+            admission_year=admission_year,
+            current_level=current_level,
+
+            prog_id=programme.id,
+            branch_id=branch.id,
+
+            cgpa=round(random.uniform(4.5, 9.8), 2)
+        )
+
+        students.append(student)
+
+    db.session.add_all(students)
+    db.session.flush()
+
+
+    # -----------------------------------------------
+    # COMPANIES
+    # -----------------------------------------------
+    companies = []
+
+    used_numbers = set()
+
+    for i in range(TOTAL_COMPANIES):
+
+        phone = None
+
+        while not phone or phone in used_numbers:
+            phone = fake.msisdn()[:10]
+
+        used_numbers.add(phone)
+
+        company = Company(
+            email=f"company{i}@test.com",
+            password=PASSWORD,
+            name=fake.company(),
+
+            user_type=UserType.company,
+
+            is_approved=True,
+
+            industry=fake.job()[:50],
+            description=fake.text(200),
+
+            website=fake.url(),
+            location=fake.city(),
+
+            contact_number=phone
+        )
+
+        companies.append(company)
+
+    db.session.add_all(companies)
+    db.session.flush()
+
+
+    # -----------------------------------------------
+    # PLACEMENT DRIVES
+    # -----------------------------------------------
+    drives = []
+
+    now = datetime.now(timezone.utc)
+
+    for i in range(TOTAL_DRIVES):
+
+        company = random.choice(companies)
+        eligibility = random.choice(eligibilities)
+
+        start = fake.date_time_between(
+            start_date="-30d",
+            end_date="+15d",
+            tzinfo=timezone.utc
+        )
+
+        end = start + timedelta(days=random.randint(7, 25))
+
+        drive = PlacementDrive(
+            company_id=company.id,
+
+            approval_status=random.choice(list(DriveApprovalStatus)),
+            status=random.choice(list(DriveStatus)),
+
+            title=fake.job()[:60] + f" {i}",
+
+            description=fake.text(300),
+
+            work_mode=random.choice(list(WorkMode)),
+            job_location=fake.city(),
+
+            eligibility=eligibility.id,
+
+            number_of_vacancies=random.randint(1, 20),
+
+            opening=start,
+            deadline=end
+        )
+
+        drives.append(drive)
+
+    db.session.add_all(drives)
+    db.session.flush()
+
+
+    # -----------------------------------------------
+    # APPLICATIONS
+    # -----------------------------------------------
+    applications = []
+
+    used_pairs = set()
+
+    for _ in range(TOTAL_APPLICATIONS):
+
+        student = random.choice(students)
+        drive = random.choice(drives)
+
+        key = (student.id, drive.id)
+
+        if key in used_pairs:
+            continue
+
+        used_pairs.add(key)
+
+        applied = fake.date_time_between(
+            start_date=drive.opening,
+            end_date=min(drive.deadline, now),
+            tzinfo=timezone.utc
+        )
+
+        app = Application(
+            student_id=student.id,
+            drive_id=drive.id,
+
+            applied_on=applied,
+
+            status=random.choice(list(ApplicationStatus)),
+
+            resume_url=fake.url(),
+
+            remarks=fake.sentence()
+        )
+
+        applications.append(app)
+
+    db.session.add_all(applications)
+
+
+    # -----------------------------------------------
+    # FINAL COMMIT
+    # -----------------------------------------------
+    db.session.commit()
+
+    print("✅ Faker seeding complete!")
+
+

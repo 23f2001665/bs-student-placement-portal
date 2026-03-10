@@ -1,7 +1,7 @@
 
 from sqlalchemy import UniqueConstraint, CheckConstraint
 from sqlalchemy import event
-from .extension import db
+from .extensions import db
 from datetime import datetime, timezone
 from enum import Enum
 
@@ -137,10 +137,18 @@ class User(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     email=db.Column(db.String(255), nullable=False, unique=True)
     password=db.Column(db.String(255), nullable=False)          # argon hashed
-    is_active=db.Column(db.Boolean, nullable=False, default=False)
+    is_active=db.Column(db.Boolean, nullable=False, default=True)
     created_at=db.Column(db.DateTime, nullable=False, default=lambda:datetime.now(timezone.utc))
     last_login=db.Column(db.DateTime, nullable=True)
     user_type=db.Column(db.Enum(UserType), nullable=False)
+
+    otp = db.Column(db.String(6), nullable=True) 
+    otp_expires_at = db.Column(db.DateTime, nullable=True)
+    last_otp_sent_at = db.Column(db.DateTime, nullable=True)
+
+    reset_token = db.Column(db.String(128), nullable=True, unique=True)
+    reset_token_expires_at = db.Column(db.DateTime, nullable=True)
+
 
     # common profile fields
     name=db.Column(db.String(63), nullable=False)
@@ -225,7 +233,7 @@ class Company(User):
     description = db.Column(db.String(), nullable=False)
     website = db.Column(db.String(255), nullable=False)
     location = db.Column(db.String(255), nullable=False)
-    contact_number = db.Column(db.String(15), nullable=False)
+    contact_number = db.Column(db.String(15), nullable=False, unique=True)
 
     # relationships
     placement_drive = db.relationship("PlacementDrive", back_populates="company", lazy="selectin", uselist=True)
@@ -359,6 +367,8 @@ def validate_branch_code(mapper, connection, target):
         raise ValueError("Invalid programme reference")
 
     if not target.code.startswith(result):
+        print(result)
+        print(target.code)
         raise ValueError("Invalid branch code")
 
 
@@ -401,4 +411,6 @@ def update_status_timestamp(target, value, oldvalue, initiator):
 
 
 ## Module Exports
-__all__ = ["Programme", "Branch", "User", "Student", "Company", "PlacementDrive", "Application"]
+__all__ = [
+            "UserType", "DriveApprovalStatus", "DriveStatus", "WorkMode", "ApplicationStatus", "Gender", "DriveEligibility", 
+            "Programme", "Branch", "User", "Student", "Company", "PlacementDrive", "Application"]

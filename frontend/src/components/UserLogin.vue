@@ -61,10 +61,12 @@
             </div>
           </form>
 
-          <!-- Success -->
-          <div v-if="submitted" class="alert alert-success mt-3">
-            Login successful
-          </div>
+          <p class="text-center mt-3">
+            Don't have an account?
+            <router-link to="Register">Register here</router-link>
+          </p>
+
+          <p class="text-center mt-3"> forgot password? <router-link :to="{name: 'ForgotPassword'}">Reset here</router-link> </p>
         </div>
       </div>
     </div>
@@ -73,13 +75,16 @@
 
 
 <script>
+import sleep from "@/utils/sleep";
+import api from "@/services/api";
+import { toast } from "vue3-toastify";
+
 export default {
   name: "Login",
 
   data() {
     return {
       showPassword: false,
-      submitted: false,
       loading: false,
       error: null,
       body: {
@@ -90,60 +95,41 @@ export default {
   },
 
   methods: {
+    async me() {
+      const res = await api.get("/auth/me");
 
-    async me(){
-      try {
-        const res = await fetch("http://localhost:5000/auth/me", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        });
-        const data = await res.json();
-        // console.log(data);
-        localStorage.setItem("user_type", data.role);
-        localStorage.setItem("is_active", data.is_active);
-      } catch (err) {
-        console.error("Failed to fetch user data", err);
-      }
+      const data = res.data;
+
+      localStorage.setItem("user_role", data.role);
+      localStorage.setItem("is_active", data.is_active);
     },
 
     async submitForm() {
-      this.error = null;
-      this.submitted = false;
-
-      if (localStorage.getItem("access_token")) {
-        this.error = "Already logged in";
-        return;
-      }
+      if (this.loading) return;
 
       this.loading = true;
-      const payload = {
-        email: this.body.email.trim(),
-        password: this.body.password,
-      };
+      this.error = null;
 
       try {
-        const res = await fetch("http://localhost:5000/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+        const res = await api.post("/auth/login", {
+          email: this.body.email.trim(),
+          password: this.body.password,
         });
 
-        const data = await res.json();
-
-        if (!res.ok) {
-          this.error = data.error || "Invalid credentials";
-          return;
-        }
-
-        localStorage.setItem("access_token", data.access_token);
-        this.submitted = true;
+        localStorage.setItem("access_token", res.data.access_token);
 
         await this.me();
-        this.$router.push("/base");
+
+        toast.success("Login successful");
+        sleep(1000);
+
+        this.$router.push(`/base/${localStorage.getItem("user_role")}`);
+
       } catch (err) {
-        this.error = "Network error. Please try again.";
+
+        this.error =
+          err.response?.data?.error || "Invalid credentials";
+
       } finally {
         this.loading = false;
       }
@@ -151,7 +137,6 @@ export default {
   },
 };
 </script>
-
 
 <style scoped>
 /* Keep inputs stable */

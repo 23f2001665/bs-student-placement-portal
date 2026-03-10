@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from ..model import *
-from ..extension import db
+from ..extensions import db
 from ..data_seed import seed_students, clear_students
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')

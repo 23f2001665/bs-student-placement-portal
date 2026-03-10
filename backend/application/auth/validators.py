@@ -1,5 +1,5 @@
-from ..extension import ma
-from marshmallow import validate
+from ..extensions import ma
+from marshmallow import validate, validates_schema
 
 class UserLoginValidator(ma.Schema):
     email = ma.Email(required=True)
@@ -67,9 +67,41 @@ class CompanyRegisterValidator(UserRegisterValidator):
         )
     )
 
+class ResetPasswordSchema(ma.Schema):
+
+    email = ma.Email(required=True)
+
+    otp = ma.String(required=False, load_only=True, validate=validate.Regexp(r"^\d{6}$"))
+    reset_token = ma.String(required=False, load_only=True)
+    new_password = ma.String(required=False, load_only=True, validate=validate.Length(min=8, max=128))
+
+
+    @validates_schema
+    def validate_flow(self, data, **kwargs):
+
+        otp = data.get("otp")
+        token = data.get("reset_token")
+        pwd = data.get("new_password")
+
+        # Step 1: only email
+        if not otp and not token and not pwd:
+            return
+
+        # Step 2: otp verification
+        if otp and not token and not pwd:
+            return
+
+        # Step 3: reset
+        if token and pwd:
+            return
+
+        raise ma.ValidationError(
+            "Invalid reset password request format"
+        )
 
 user_login_schema = UserLoginValidator()
 student_register_schema = StudentRegisterValidator()
 company_register_schema = CompanyRegisterValidator()
+reset_password_schema = ResetPasswordSchema()
 
-__all__ = ["user_login_schema", "student_register_schema", "company_register_schema"]
+__all__ = ["user_login_schema", "student_register_schema", "company_register_schema", "reset_password_schema"]

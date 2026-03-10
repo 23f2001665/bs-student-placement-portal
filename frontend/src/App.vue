@@ -5,7 +5,8 @@
 <script>
 export default {
   name: 'App'
+  
 }
 
-console.log("from src/App.vue")
+// console.log("from src/App.vue")
 </script>

@@ -1,4 +1,4 @@
-from ..extension import ma
+from ..extensions import ma
 from ..model import Programme, Branch
 
 

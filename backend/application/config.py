@@ -13,7 +13,7 @@ class BaseConfig:
 
     JWT_ALGORITHM = "HS256"
 
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=10)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=14)
     JWT_CLOCK_SKEW_SECONDS = 30
 
@@ -30,9 +30,19 @@ class DevelopmentConfig(BaseConfig):
     )
     SQLALCHEMY_ECHO = False
 
+    CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0")
+    RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 
     JWT_TOKEN_LOCATION = ["headers"]
     JWT_COOKIE_SECURE = False
+
+    # mail config
+    MAIL_SERVER = "smtp.gmail.com"
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.environ.get("EMAIL_USER")
+    MAIL_PASSWORD = os.environ.get("EMAIL_PASS")
+    MAIL_DEBUG = False
 
 
 class ProductionConfig(BaseConfig):
