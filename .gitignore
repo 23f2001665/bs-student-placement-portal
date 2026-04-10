@@ -20,10 +20,12 @@ wheels/
 coverage/
 *.cover
 tests/
-temp/
+
 
 # data files
 instance/
+temp/
+uploads/
 *.csv
 *.json
 *.db*
