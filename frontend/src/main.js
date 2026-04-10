@@ -1,19 +1,28 @@
-import { createApp } from "vue";
-import App from "./App.vue";
-import router from "./router";
+import { createApp } from 'vue'
+import App from './App.vue'
 
-import Vue3Toastify from "vue3-toastify";
-import "vue3-toastify/dist/index.css";
+// Global design theme (Poppins + CSS variables + base reset)
+import './assets/theme.css'
 
-const app = createApp(App);
+// router + store
+import router from '@/router'
+import { createPinia } from 'pinia'
+import { useAuthStore } from '@/store/auth'
 
-app.use(router);
+// toast
+import Vue3Toastify from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
-// Register toast globally
-app.use(Vue3Toastify, {
-  autoClose: 3000,
-  position: "top-right",
-  pauseOnHover: true,
-});
+const app = createApp(App)
+const pinia = createPinia()
 
-app.mount("#app");
+app.use(pinia)
+app.use(router)
+app.use(Vue3Toastify)
+
+window.addEventListener('ppa:force-logout', () => {
+	const auth = useAuthStore(pinia)
+	auth.clearAuthState()
+})
+
+app.mount('#app')

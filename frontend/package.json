@@ -9,16 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@vuepic/vue-datepicker": "^12.1.0",
-    "axios": "^1.13.5",
-    "flatpickr": "^4.6.13",
-    "vue": "^3.5.24",
-    "vue-flatpickr-component": "^12.0.0",
+    "axios": "^1.14.0",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.32",
     "vue-router": "^4.6.4",
-    "vue3-toastify": "^0.2.8"
+    "vue3-toastify": "^0.2.9"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.1",
-    "vite": "^7.2.4"
-  }
+    "@vitejs/plugin-vue": "^6.0.5",
+    "vite": "^8.0.4"
+  },
+  "packageManager": "pnpm@10.33.0"
 }

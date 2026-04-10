@@ -1,0 +1,262 @@
+/* ============================================================
+   Poppins — Google Font
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* ============================================================
+   CSS Custom Properties — Design Tokens
+   ============================================================ */
+:root {
+  /* --- Brand / Primary --- */
+  --color-primary:        #2f66db;
+  --color-primary-hover:  #2554b7;
+  --color-primary-light:  #eaf0ff;
+  --color-primary-focus:  rgba(77, 118, 217, 0.18);
+
+  /* --- Text --- */
+  --color-text-heading:   #1b2a4b;
+  --color-text-base:      #2e4067;
+  --color-text-muted:     #607094;
+  --color-text-subtle:    #4d6290;
+  --color-text-support:   #5f6f91;
+  --color-text-link:      #3158a7;
+
+  /* --- Backgrounds --- */
+  --color-bg-page:        #f3f5f9;
+  --color-bg-card:        #ffffff;
+  --color-bg-input:       #ffffff;
+
+  /* --- Borders --- */
+  --color-border-card:    #e3e7ef;
+  --color-border-input:   #cfd6e3;
+  --color-border-focus:   #4d76d9;
+  --color-border-nav:     #d6dbe8;
+
+  /* --- Status / Semantic --- */
+  --color-success:        #16a34a;
+  --color-success-light:  #dcfce7;
+  --color-danger:         #b42318;
+  --color-danger-light:   #fee2e2;
+  --color-warning:        #f59e0b;
+  --color-warning-light:  #fef9c3;
+  --color-info:           #0ea5e9;
+  --color-info-light:     #e0f2fe;
+
+  /* --- Shadows --- */
+  --shadow-card:          0 8px 24px rgba(20, 31, 56, 0.08);
+  --shadow-focus:         0 0 0 3px var(--color-primary-focus);
+
+  /* --- Border Radius --- */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+
+  /* --- Typography --- */
+  --font-family:          'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size-xs:         0.75rem;    /* 12px */
+  --font-size-sm:         0.875rem;   /* 14px */
+  --font-size-base:       0.9375rem;  /* 15px */
+  --font-size-md:         1rem;       /* 16px */
+  --font-size-lg:         1.125rem;   /* 18px */
+  --font-size-xl:         1.5rem;     /* 24px */
+  --font-size-2xl:        1.75rem;    /* 28px */
+  --font-size-3xl:        2rem;       /* 32px */
+
+  /* --- Spacing --- */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+}
+
+/* ============================================================
+   Base Reset / Global Defaults
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-text-base);
+  background-color: var(--color-bg-page);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure form elements inherit the Poppins font from body */
+input, button, select, textarea, optgroup {
+  font-family: inherit;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text-heading);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================
+   Global Utility — Buttons
+   (these complement scoped styles; unscoped so they cascade)
+   ============================================================ */
+
+/* Primary / solid button */
+button.primary,
+a.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #fff;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+button.primary:hover:not(:disabled),
+a.primary:hover {
+  background: var(--color-primary-hover);
+}
+
+button.primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Ghost / outlined button */
+button.ghost,
+a.ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-nav);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  color: var(--color-text-base);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+button.ghost:hover:not(:disabled),
+a.ghost:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+button.ghost:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Text / link button */
+button.text-btn,
+a.text-btn {
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-link);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+button.text-btn:hover,
+a.text-btn:hover {
+  text-decoration: underline;
+}
+
+/* Danger button */
+button.danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-danger);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.danger:hover:not(:disabled) {
+  background: var(--color-danger-light);
+}
+
+button.danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   Global Utility — Form Elements
+   (minimal defaults — detailed styles live in each view's scoped block)
+   ============================================================ */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  opacity: 1;
+}
+
+/* ============================================================
+   Global Utility — State text helpers
+   ============================================================ */
+.state-text {
+  padding: var(--space-6) 0;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-base);
+}
+
+.state-text.error {
+  color: var(--color-danger);
+}
