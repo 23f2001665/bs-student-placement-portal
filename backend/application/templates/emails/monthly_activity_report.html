@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Monthly Placement Activity Report</title>
+  </head>
+  <body style="margin:0; padding:0; background:#f4f7fb; font-family:Arial, Helvetica, sans-serif; color:#1f2d46;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="width:640px; max-width:94%; background:#ffffff; border:1px solid #dce5f5; border-radius:12px; overflow:hidden;">
+            <tr>
+              <td style="padding:20px 22px; background:#eef4ff; border-bottom:1px solid #dce5f5;">
+                <h2 style="margin:0; font-size:22px; color:#173b7a;">Monthly Placement Activity Report</h2>
+                <p style="margin:6px 0 0; color:#496598; font-size:14px;">
+                  Period: {{ month_start_label }} to {{ month_end_label }}
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 22px 8px;">
+                <p style="margin:0 0 14px; font-size:14px; color:#314564;">
+                  Institute placement activity summary for <strong>{{ month_label }}</strong>.
+                </p>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse; border:1px solid #dce5f5; border-radius:10px; overflow:hidden;">
+                  <tr style="background:#f7faff;">
+                    <th align="left" style="padding:10px 12px; font-size:13px; color:#4c628f; border-bottom:1px solid #dce5f5;">Metric</th>
+                    <th align="right" style="padding:10px 12px; font-size:13px; color:#4c628f; border-bottom:1px solid #dce5f5;">Value</th>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px 12px; border-bottom:1px solid #e7edf8; font-size:14px;">Number of drives conducted</td>
+                    <td align="right" style="padding:10px 12px; border-bottom:1px solid #e7edf8; font-size:14px;"><strong>{{ metrics.drives_conducted }}</strong></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px 12px; border-bottom:1px solid #e7edf8; font-size:14px;">Number of students applied</td>
+                    <td align="right" style="padding:10px 12px; border-bottom:1px solid #e7edf8; font-size:14px;"><strong>{{ metrics.students_applied }}</strong></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px 12px; border-bottom:1px solid #e7edf8; font-size:14px;">Number of students selected</td>
+                    <td align="right" style="padding:10px 12px; border-bottom:1px solid #e7edf8; font-size:14px;"><strong>{{ metrics.students_selected }}</strong></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px 12px; border-bottom:1px solid #e7edf8; font-size:14px;">Total applications received</td>
+                    <td align="right" style="padding:10px 12px; border-bottom:1px solid #e7edf8; font-size:14px;"><strong>{{ metrics.applications_total }}</strong></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px 12px; font-size:14px;">Selected applications</td>
+                    <td align="right" style="padding:10px 12px; font-size:14px;"><strong>{{ metrics.selected_applications_total }}</strong></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:10px 22px 20px;">
+                <p style="margin:0; font-size:12px; color:#62779f;">Generated on: {{ generated_on }}</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
