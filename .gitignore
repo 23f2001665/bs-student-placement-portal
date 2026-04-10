@@ -35,6 +35,16 @@ uploads/
 *.seed
 .devstack_redis.pid
 
+# celery related files
+celerybeat-schedule
+celerybeat.pid
+celeryd.pid
+celeryd.log
+celery.log
+celerybeat-shedule-shm
+celerybeat-shedule-wal
+dump.rdb
+
 # Logs
 logs
 *.log
