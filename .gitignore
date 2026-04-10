@@ -41,8 +41,8 @@ celerybeat.pid
 celeryd.pid
 celeryd.log
 celery.log
-celerybeat-shedule-shm
-celerybeat-shedule-wal
+celerybeat-schedule-shm
+celerybeat-schedule-wal
 dump.rdb
 
 # Logs
