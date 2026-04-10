@@ -15,6 +15,7 @@ Hello and welcome to the BS Student Placement Portal! This is a comprehensive pl
 - Create and manage drives
 - View and update company profile
 - View applications and update their status
+- Schedule interviews and send notifications to students by email.
 - View drive summaries and application details
 
 ## Admin Features

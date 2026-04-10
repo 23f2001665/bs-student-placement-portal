@@ -1,0 +1,848 @@
+openapi: 3.0.3
+info:
+  title: Placement Portal API
+  version: 1.0.0
+  description: OpenAPI definition generated from Flask routes and model structures.
+servers:
+  - url: http://127.0.0.1:5000
+    description: Local development server
+
+tags:
+  - name: Common
+  - name: Auth
+  - name: Student
+  - name: Company
+  - name: Admin
+
+components:
+  securitySchemes:
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: session
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    Pagination:
+      type: object
+      properties:
+        page: { type: integer }
+        limit: { type: integer }
+        total: { type: integer }
+        total_pages: { type: integer }
+        has_prev: { type: boolean }
+        has_next: { type: boolean }
+        prev_page:
+          type: integer
+          nullable: true
+        next_page:
+          type: integer
+          nullable: true
+
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        email: { type: string, format: email }
+        is_active: { type: boolean }
+        user_type:
+          type: string
+          enum: [admin, student, company]
+        name: { type: string }
+
+    Student:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            gender:
+              type: string
+              nullable: true
+            roll: { type: string }
+            branch: { type: string }
+            current_level: { type: integer }
+            cgpa:
+              type: number
+              format: float
+              nullable: true
+            resume_path:
+              type: string
+              nullable: true
+
+    Company:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            is_approved: { type: boolean }
+            industry_type: { type: string }
+            website: { type: string }
+            description:
+              type: string
+              nullable: true
+
+    Drive:
+      type: object
+      properties:
+        id: { type: integer }
+        company_id: { type: integer }
+        is_active: { type: boolean }
+        title: { type: string }
+        description:
+          type: string
+          nullable: true
+        create_date: { type: string, format: date-time }
+        start_date: { type: string, format: date-time }
+        end_date: { type: string, format: date-time }
+        approval_status: { type: string }
+        status: { type: string }
+        work_mode: { type: string }
+        min_cgpa:
+          type: number
+          format: float
+          nullable: true
+        allowed_branches:
+          type: array
+          items: { type: string }
+        max_applications:
+          type: integer
+          nullable: true
+
+    Interview:
+      type: object
+      properties:
+        id: { type: integer }
+        application_id: { type: integer }
+        interview_date: { type: string, format: date }
+        interview_time: { type: string, example: '10:30:00' }
+        details:
+          type: string
+          nullable: true
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Application:
+      type: object
+      properties:
+        id: { type: integer }
+        student_id: { type: integer }
+        drive_id: { type: integer }
+        application_date: { type: string, format: date-time }
+        status: { type: string }
+        resume_note:
+          type: string
+          nullable: true
+        resume_link:
+          type: string
+          nullable: true
+        interview:
+          anyOf:
+            - $ref: '#/components/schemas/Interview'
+            - type: 'null'
+
+    LoginRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+      required: [email, password]
+
+    LoginResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        data:
+          anyOf:
+            - $ref: '#/components/schemas/User'
+            - type: 'null'
+
+paths:
+  /api/:
+    get:
+      tags: [Common]
+      summary: API root
+      responses:
+        '200':
+          description: API welcome
+
+  /api/branches:
+    get:
+      tags: [Common]
+      summary: List branches
+      responses:
+        '200': { description: Branch list }
+
+  /api/brances:
+    get:
+      tags: [Common]
+      summary: Backward-compatible alias for branches
+      responses:
+        '200': { description: Branch list }
+
+  /api/industries:
+    get:
+      tags: [Common]
+      summary: List industries
+      responses:
+        '200': { description: Industry list }
+
+  /api/genders:
+    get:
+      tags: [Common]
+      summary: List genders
+      responses:
+        '200': { description: Gender list }
+
+  /api/user-types:
+    get:
+      tags: [Common]
+      summary: List user types
+      responses:
+        '200': { description: User type list }
+
+  /api/enums:
+    get:
+      tags: [Common]
+      summary: List all enums
+      responses:
+        '200': { description: Enum bundle }
+
+  /api/auth/:
+    get:
+      tags: [Auth]
+      summary: Auth API root
+      responses:
+        '200': { description: Welcome message }
+
+  /api/auth/register/student/:
+    post:
+      tags: [Auth]
+      summary: Register student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, name, roll, branch, current_level]
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+                name: { type: string }
+                roll: { type: string }
+                branch: { type: string }
+                gender: { type: string }
+                current_level: { type: integer }
+                cgpa: { type: number, format: float }
+                resume:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Student created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '400': { description: Validation error }
+        '409': { description: Conflict }
+
+  /api/auth/register/company/:
+    post:
+      tags: [Auth]
+      summary: Register company
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, name, industry_type, website]
+      responses:
+        '201':
+          description: Company created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '400': { description: Validation error }
+        '409': { description: Conflict }
+
+  /api/auth/login/:
+    post:
+      tags: [Auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401': { description: Invalid credentials }
+
+  /api/auth/logout/:
+    post:
+      tags: [Auth]
+      summary: Logout user
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /api/auth/send-otp/:
+    post:
+      tags: [Auth]
+      summary: Send password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200': { description: OTP sent }
+        '404': { description: User not found }
+
+  /api/auth/reset-password/:
+    post:
+      tags: [Auth]
+      summary: Reset password with OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, otp, password]
+              properties:
+                email: { type: string, format: email }
+                otp: { type: string }
+                password: { type: string }
+      responses:
+        '200': { description: Password reset successful }
+        '400': { description: Invalid OTP or payload }
+
+  /api/student/profile/:
+    get:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: View student profile
+      responses:
+        '200': { description: Student profile }
+
+  /api/student/profile/resume/:
+    get:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: Download student resume
+      responses:
+        '200': { description: PDF resume }
+        '404': { description: Resume not found }
+
+  /api/student/profile/update/:
+    put:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: Update student profile
+      responses:
+        '200': { description: Profile updated }
+
+  /api/student/drives/:
+    get:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: List available drives
+      responses:
+        '200': { description: Drive list }
+
+  /api/student/drives/{drive_id}/:
+    get:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: View drive detail
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Drive detail }
+        '404': { description: Drive not found }
+
+  /api/student/companies/{company_id}/:
+    get:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: View company detail
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Company detail }
+
+  /api/student/drives/{drive_id}/apply/:
+    post:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: Apply to a drive
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '201': { description: Application created }
+        '400': { description: Not eligible or invalid }
+        '409': { description: Already applied }
+
+  /api/student/applications/:
+    get:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: List student applications
+      responses:
+        '200': { description: Application list }
+
+  /api/student/applications/{application_id}/:
+    get:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: View student application detail
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Application detail }
+        '404': { description: Not found }
+
+  /api/student/applications/export/:
+    post:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: Request async CSV export of student applications
+      responses:
+        '202': { description: Export task queued }
+
+  /api/student/applications/export/{task_id}/status:
+    get:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: Get export task status
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Export status }
+
+  /api/student/applications/export/{task_id}/download:
+    get:
+      tags: [Student]
+      security: [{ SessionCookie: [] }]
+      summary: Download exported CSV
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: CSV file }
+
+  /api/company/profile/:
+    get:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: View company profile
+      responses:
+        '200': { description: Company profile }
+
+  /api/company/profile/update/:
+    put:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: Update company profile
+      responses:
+        '200': { description: Profile updated }
+
+  /api/company/drives/:
+    get:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: List company drives
+      responses:
+        '200': { description: Drive list }
+
+  /api/company/drives/summary/:
+    get:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: List company drive summaries
+      responses:
+        '200': { description: Drive summary list }
+
+  /api/company/drives/create/:
+    post:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: Create drive
+      responses:
+        '201': { description: Drive created }
+
+  /api/company/drives/{drive_id}/:
+    get:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: View applications for one drive
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Drive applications }
+
+  /api/company/drives/{drive_id}/summary/:
+    get:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: View one drive summary
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Drive summary }
+
+  /api/company/drives/{drive_id}/update/:
+    put:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: Update drive
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Drive updated }
+
+  /api/company/drives/{drive_id}/delete/:
+    delete:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: Delete drive
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Drive deleted }
+
+  /api/company/applications/:
+    get:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: List company applications
+      responses:
+        '200': { description: Application list }
+
+  /api/company/applications/{application_id}/:
+    get:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: View application detail
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Application detail }
+
+  /api/company/applications/{application_id}/resume/:
+    get:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: Download application resume
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: PDF resume }
+
+  /api/company/applications/{application_id}/status/:
+    put:
+      tags: [Company]
+      security: [{ SessionCookie: [] }]
+      summary: Update application status
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Status updated }
+
+  /api/admin/dashboard/:
+    get:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Admin dashboard metrics
+      responses:
+        '200': { description: Dashboard payload }
+
+  /api/admin/students/:
+    get:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: List students
+      responses:
+        '200': { description: Student list }
+
+  /api/admin/students/{student_id}/block/:
+    put:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Block student
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Student blocked }
+
+  /api/admin/students/{student_id}/unblock/:
+    put:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Unblock student
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Student unblocked }
+
+  /api/admin/companies/:
+    get:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: List companies
+      responses:
+        '200': { description: Company list }
+
+  /api/admin/companies/pending/:
+    get:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: List pending companies
+      responses:
+        '200': { description: Pending company list }
+
+  /api/admin/companies/{company_id}/approve/:
+    put:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Approve company
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Company approved }
+
+  /api/admin/companies/{company_id}/reject/:
+    put:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Reject company
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Company rejected }
+
+  /api/admin/companies/{company_id}/block/:
+    put:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Block company
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Company blocked }
+
+  /api/admin/companies/{company_id}/unblock/:
+    put:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Unblock company
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Company unblocked }
+
+  /api/admin/drives/:
+    get:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: List drives
+      responses:
+        '200': { description: Drive list }
+
+  /api/admin/drives/pending/:
+    get:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: List pending drives
+      responses:
+        '200': { description: Pending drive list }
+
+  /api/admin/drives/{drive_id}/:
+    get:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: View drive detail
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Drive detail }
+
+  /api/admin/drives/{drive_id}/approve/:
+    put:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Approve drive
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Drive approved }
+
+  /api/admin/drives/{drive_id}/reject/:
+    put:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Reject drive
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Drive rejected }
+
+  /api/admin/drives/{drive_id}/block/:
+    put:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Block drive
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Drive blocked }
+
+  /api/admin/drives/{drive_id}/unblock/:
+    put:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Unblock drive
+      parameters:
+        - name: drive_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Drive unblocked }
+
+  /api/admin/applications/:
+    get:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: List applications
+      responses:
+        '200': { description: Application list }
+
+  /api/admin/applications/{application_id}/:
+    get:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Application detail
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Application detail }
+
+  /api/admin/applications/{application_id}/resume/:
+    get:
+      tags: [Admin]
+      security: [{ SessionCookie: [] }]
+      summary: Download application resume
+      parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: PDF resume }
