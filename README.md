@@ -248,4 +248,4 @@ himanshu@fedora 23f2001665. $ tree
 
 ## Conclusion
 
-The BS Student Placement Portal is a robust and feature-rich platform that streamlines the placement process for students, companies, and administrators. With its comprehensive set of features, strong authentication and authorization mechanisms, and efficient handling of long-running tasks, the portal aims to provide a seamless experience for all users involved in the placement process.
+The BS Student Placement Portal is a robust and feature-rich platform that streamlines the placement process for students, companies, and administrators. With its comprehensive set of features, strong authentication and authorization mechanisms, and efficient handling of long-running tasks, the portal aims to provide a seamless experience for all user involved in the placement process.
